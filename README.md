@@ -12,21 +12,6 @@ fetcher ──raw_articles──▶ parser ──parsed_articles──▶ storag
                                              (файл + лог)   (страница на :8080)
 ```
 
-## Идея и цель
-
-Каждый слой написан руками, без фреймворков:
-
-- **event loop** — один `event_base` (libevent) на процесс: на нём AMQP-сокет,
-  таймер и обработчики SIGTERM/SIGINT;
-- **AMQP** — AMQP-CPP на низком уровне: свой реконнект, ручные ack/reject,
-  durable-очереди и persistent-сообщения;
-- **HTTP** — `evhttp` из той же libevent, поэтому веб-сервис остался
-  однопоточным и без мьютексов;
-- **парсинг HTML** — libxml2 + XPath, без регулярок;
-- **хранилище** — SQLite: prepared statements, транзакции, дедупликация через
-  `ON CONFLICT DO UPDATE`;
-- **контракты** — общие структуры + `NLOHMANN_DEFINE_TYPE_INTRUSIVE`, одни и те
-  же у продюсера и консьюмера.
 
 ## Стек
 
