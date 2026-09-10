@@ -1,0 +1,98 @@
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # http://localhost:15672 (guest / guest)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  fetcher:
+    build:
+      context: .
+      dockerfile: services/fetcher/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      HABR_URL: https://habr.com/ru/articles/top/daily/
+      FETCH_INTERVAL_SECONDS: 300
+      FETCH_TIMEOUT_SECONDS: 10
+    restart: unless-stopped
+
+  parser:
+    build:
+      context: .
+      dockerfile: services/parser/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    restart: unless-stopped
+
+  storage:
+    build:
+      context: .
+      dockerfile: services/storage/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      DATABASE_PATH: /data/habr.db
+      DIGEST_INTERVAL_SECONDS: 120
+      DIGEST_PERIOD_HOURS: 24
+      DIGEST_TOP_N: 10
+    volumes:
+      - storage_data:/data
+    restart: unless-stopped
+
+  notifier:
+    build:
+      context: .
+      dockerfile: services/notifier/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      DIGEST_OUTPUT_DIR: /data/digests
+    volumes:
+      - digest_data:/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: services/web/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8080:8080" # http://localhost:8080
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      HTTP_PORT: 8080
+      DIGEST_HISTORY_SIZE: 20
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  storage_data:
+  digest_data:

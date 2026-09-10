@@ -1,0 +1,22 @@
+[requires]
+amqp-cpp/4.3.26
+# Direct requirement, not incidental: AMQP-CPP's public headers include
+# <openssl/ssl.h> while its recipe keeps OpenSSL's headers non-transitive.
+openssl/3.6.3
+libevent/2.1.12
+nlohmann_json/3.11.3
+libxml2/2.13.8
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[options]
+amqp-cpp/*:linux_tcp_module=True
+# The parser only reads HTML from memory; none of libxml2's optional network,
+# XSLT or compression features are needed, and turning them off keeps the
+# statically linked binary small.
+libxml2/*:http=False
+libxml2/*:zlib=False
+libxml2/*:lzma=False
+libxml2/*:iconv=False

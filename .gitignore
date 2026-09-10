@@ -1,0 +1,12 @@
+build/
+cmake-build-*/
+CMakeUserPresets.json
+
+conan_toolchain.cmake
+conan_*.cmake
+conandeps_legacy.cmake
+*.conan/
+
+data/
+
+.DS_Store
