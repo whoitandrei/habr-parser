@@ -33,9 +33,6 @@ fetcher ──raw_articles──▶ parser ──parsed_articles──▶ storag
 | `notifier` | Рендерит дайджест в Markdown, пишет файл и лог | — |
 | `web` | Показывает последний дайджест на HTTP-странице | libevent (`evhttp`) |
 
-Отдельных `scheduler` и `ranking` нет: таймер — это несколько строк на libevent,
-а ранжирование — один `ORDER BY` по таблице, которой владеет только `storage`.
-
 ## Очереди
 
 - `raw_articles` — `fetch_id`, `source_url`, `raw_html`, `fetched_at`, `trace_id`;
@@ -44,10 +41,6 @@ fetcher ──raw_articles──▶ parser ──parsed_articles──▶ storag
   дайджест только одному из подписчиков, и `notifier` с `web` делили бы их
   пополам. Каждый подписчик привязывает свою durable-очередь
   (`digest_ready.notifier`, `digest_ready.web`).
-
-`trace_id` генерируется в `fetcher` на цикл «скачали → распарсили → сохранили» и
-копируется дальше без изменений. У дайджеста свой `trace_id` — он агрегирует
-много циклов; исходный сохранён в `source_trace_id` каждой статьи.
 
 Схемы: [`shared/cpp/messaging/include/messaging/messages.hpp`](shared/cpp/messaging/include/messaging/messages.hpp).
 
@@ -65,29 +58,17 @@ habr-parser/
                         у каждого свои CMakeLists.txt, conanfile.txt, Dockerfile
 ```
 
-Неймспейс зеркалит путь: `habr::services::fetcher`, `habr::shared::messaging`.
-
 ## Запуск
 
 ```bash
 docker compose up --build
 ```
 
-Первая сборка — несколько минут: Conan собирает зависимости. Кеш Conan общий для
-всех образов (BuildKit cache mount), поэтому OpenSSL компилируется один раз, а
-не пять.
-
 - **Веб-морда:** <http://localhost:8080> (обновляется сама раз в 30 с).
   Ещё есть `/api/digest` и `/healthz`.
 - **RabbitMQ UI:** <http://localhost:15672>, `guest` / `guest`.
 - **Логи:** `docker compose logs -f fetcher parser storage notifier web`.
 - **Дайджест файлом:** `docker compose exec notifier cat /data/digests/latest.md`.
-
-Первый `fetch` происходит сразу при подключении к брокеру, первый дайджест —
-через `DIGEST_INTERVAL_SECONDS`.
-
-Graceful shutdown: `docker compose stop fetcher` → в логе `Received signal 15` →
-`Shutting down gracefully` → `Stopped, exit_code=0`, без SIGKILL по таймауту.
 
 ## Локальная сборка без Docker
 
@@ -98,9 +79,6 @@ cmake --build build -j
 ```
 
 ## Конфигурация
-
-Всё через переменные окружения, значения по умолчанию — в `config.hpp` каждого
-сервиса.
 
 - **все:** `RABBITMQ_HOST` (`localhost`), `RABBITMQ_PORT` (`5672`),
   `RABBITMQ_USER`/`RABBITMQ_PASSWORD` (`guest`), `RABBITMQ_VHOST` (`/`),
