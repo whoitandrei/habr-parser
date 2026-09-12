@@ -37,9 +37,7 @@ fetcher ──raw_articles──▶ parser ──parsed_articles──▶ storag
 
 - `raw_articles` — `fetch_id`, `source_url`, `raw_html`, `fetched_at`, `trace_id`;
 - `parsed_articles` — тот же `trace_id` + массив статей со счётчиками;
-- `digest_ready` — **fanout-обменник**, а не очередь: очередь отдала бы каждый
-  дайджест только одному из подписчиков, и `notifier` с `web` делили бы их
-  пополам. Каждый подписчик привязывает свою durable-очередь
+- `digest_ready` —  каждый подписчик привязывает свою durable-очередь
   (`digest_ready.notifier`, `digest_ready.web`).
 
 Схемы: [`shared/cpp/messaging/include/messaging/messages.hpp`](shared/cpp/messaging/include/messaging/messages.hpp).
