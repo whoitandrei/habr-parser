@@ -76,17 +76,4 @@ cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_B
 cmake --build build -j
 ```
 
-## Конфигурация
-
-- **все:** `RABBITMQ_HOST` (`localhost`), `RABBITMQ_PORT` (`5672`),
-  `RABBITMQ_USER`/`RABBITMQ_PASSWORD` (`guest`), `RABBITMQ_VHOST` (`/`),
-  `RABBITMQ_MAX_RECONNECT_ATTEMPTS` (`10`), `RABBITMQ_RECONNECT_DELAY_SECONDS` (`3`);
-- **fetcher:** `HABR_URL`, `FETCH_INTERVAL_SECONDS` (`300`),
-  `FETCH_TIMEOUT_SECONDS` (`10`), `HTTP_USER_AGENT`;
-- **storage:** `DATABASE_PATH` (`/data/habr.db`), `DIGEST_INTERVAL_SECONDS`
-  (`120`), `DIGEST_PERIOD_HOURS` (`24`), `DIGEST_TOP_N` (`10`),
-  `DIGEST_WEIGHT_VOTES`/`_BOOKMARKS`/`_COMMENTS`/`_VIEWS`;
-- **notifier:** `DIGEST_OUTPUT_DIR` (`/data/digests`);
-- **web:** `HTTP_BIND` (`0.0.0.0`), `HTTP_PORT` (`8080`), `DIGEST_HISTORY_SIZE` (`20`).
-
 Формула ранжирования: `score = votes*10 + bookmarks*5 + comments*2 + views*0.005`.
